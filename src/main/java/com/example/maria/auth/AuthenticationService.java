@@ -7,8 +7,11 @@ import com.example.maria.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -29,15 +32,43 @@ public class AuthenticationService {
         repo.save(user);
         var jwtToken  = jwtService.generateToken(user);
         return AuthenticationResponse.builder().token(jwtToken).build();
-
     }
+
+    public AuthenticationResponse register(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        user.setRole(Role.USER);
+        repo.save(user);
+        String jwtToken  = jwtService.generateToken(user);
+        return AuthenticationResponse.builder().token(jwtToken).build();
+    }
+
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                 request.getEmail(), request.getPassword()
         ));
-        User user = repo.findUserByEmail(request.getEmail()).orElseThrow();
-        var jwtToken  = jwtService.generateToken(user);
+        User user = repo.findUserByEmail(request.getEmail());
+        String jwtToken  = jwtService.generateToken(user);
         return AuthenticationResponse.builder().token(jwtToken).build();
+    }
+
+
+    public AuthenticationResponse authenticate(User user) {
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                user.getEmail(), user.getPassword()
+        ));
+        try
+        {
+            User newuser = repo.findUserByEmail(user.getEmail());
+            String jwtToken  = jwtService.generateToken(newuser);
+            return AuthenticationResponse.builder().token(jwtToken).build();
+        }catch (Exception NoSuchElementException){
+            return new AuthenticationResponse("NO USER") ;
+        }
+    }
+
+    public boolean login(User user){
+        User u = repo.findUserByEmail(user.getEmail());
+        return u != null;
     }
 
 }

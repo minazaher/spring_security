@@ -24,11 +24,9 @@ public class SecurityConfig {
         httpSecurity.csrf().disable()
                 .authorizeHttpRequests()
 //                Whitelisting matching endpoints
-                .requestMatchers("/api/v1/auth/**")
-                .permitAll()
 //                Request Authentication for any other request
                 .anyRequest()
-                .authenticated()
+                .permitAll()
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(STATELESS)

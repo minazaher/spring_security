@@ -24,6 +24,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
+       // https//:www.asdasdasd.com?authrouization=Bearer ?user=sdadsads?
+
         final String authHeader = request.getHeader("Authorization");
         final String JWT;
         final String userEmail;
@@ -34,6 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 //        extracting token
+        //jwt = asdasdweerwRW
         JWT = authHeader.substring(7);
 
 //        the email is our "username" in this case
@@ -41,13 +44,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 //        checking if the user is not authenticated yet because if it is authenticated we won't need to do this process
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null){
-
-//            retrieving the user from our database
+//           retrieving the user from our database
             UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
-
 //             check the function impl
             if (jwtService.isTokenValid(JWT,userDetails)){
-
 //                create an authentication token to be used further in this session
                 UsernamePasswordAuthenticationToken authenticationToken =
                                 new UsernamePasswordAuthenticationToken(userDetails,null, userDetails.getAuthorities());
@@ -57,7 +57,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         }
     }
-
     private Boolean isAuthValid(String authHeader){
         return authHeader == null ||!authHeader.startsWith("Bearer ");
     }
